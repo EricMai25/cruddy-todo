@@ -13,7 +13,7 @@ exports.create = (text, callback) => {
       throw (err);
     } else {
       fs.writeFile(`${exports.dataDir}/${count}.txt`, text, () => {
-        let todo = { id: count, text: text}
+        let todo = { id: count, text: text};
         callback(err, todo);
       });
     }
@@ -25,7 +25,7 @@ exports.readAll = (callback) => {
     todoList = [];
     
     _.each(todos, (id) => {
-    todoList.push({ 'id': id.substring(0, 5) , 'text': id.substring(0, 5) });
+      todoList.push({ 'id': id.substring(0, 5), 'text': id.substring(0, 5) });
     });
   
     callback(err, todoList);
@@ -38,42 +38,40 @@ exports.readOne = (id, callback) => {
       callback(err);
     } else {
       let obj = {
-      id: id,
-      text: todo.toString()
-    };
+        id: id,
+        text: todo.toString()
+      };
       callback(err, obj);
     }
   });
 };
 
 exports.update = (id, text, callback) => {
+  fs.readFile(`${exports.dataDir}/${id}.txt`, (err, fileData) => {
+    if (err) {
+      callback(err);
+    } else {
       fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
         if (err) {
-          callback(err)
+          callback(err);
         } else {
           callback(err, text);
         }
       });
-
-
-  // var item = items[id];
-  // if (!item) {
-  //   callback(new Error(`No item with id: ${id}`));
-  // } else {
-  //   items[id] = text;
-  //   callback(null, { id, text });
-  // }
+    }
+  });
 };
 
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
+  fs.readFile(`${exports.dataDir}/${id}.txt`, (err, fileData) => {
+    if (err) {
+      callback(err);
+    } else {
+      fs.unlink(`${exports.dataDir}/${id}.txt`, (err) => {
+        callback(err);
+      });
+    }
+  });
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
