@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
-
-var items = {};
+var Promise = require('bluebird');
+var readFilePromise = Promise.promisify(fs.readFile);
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
@@ -22,13 +22,18 @@ exports.create = (text, callback) => {
 
 exports.readAll = (callback) => {
   fs.readdir(exports.dataDir, (err, todos) => {
-    todoList = [];
-    
-    _.each(todos, (id) => {
-      todoList.push({ 'id': id.substring(0, 5), 'text': id.substring(0, 5) });
+    if (err) {
+      callback (err);
+    } 
+    let allTodos = _.map(todos, (todo) => {
+      let id = path.basename(todo, '.txt');
+      let filePath = path.join(exports.dataDir, todo);
+      return readFilePromise(filePath)
+        .then((todo) => { 
+          return {id: id, text: todo.toString()};
+        });
     });
-  
-    callback(err, todoList);
+    Promise.all(allTodos).then((allTodos) => { callback(null, allTodos); });
   });
 };
 
@@ -41,7 +46,7 @@ exports.readOne = (id, callback) => {
         id: id,
         text: todo.toString()
       };
-      callback(err, obj);
+      callback(null, obj);
     }
   });
 };
@@ -53,9 +58,10 @@ exports.update = (id, text, callback) => {
     } else {
       fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
         if (err) {
+          // console.log('in write error', id)
           callback(err);
         } else {
-          callback(err, text);
+          callback(null, text);
         }
       });
     }
