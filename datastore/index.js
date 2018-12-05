@@ -58,10 +58,9 @@ exports.update = (id, text, callback) => {
     } else {
       fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
         if (err) {
-          // console.log('in write error', id)
           callback(err);
         } else {
-          callback(null, text);
+          callback(null, { id: id, text: text });
         }
       });
     }
